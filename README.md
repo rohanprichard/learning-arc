@@ -62,6 +62,8 @@ No delete, archive, attendee-invite, or destructive tools are exposed.
 
 ## Setup instructions — one path to run everything
 
+For the complete Discord, Composio, and OpenRouter account setup, see [`SETUP.md`](SETUP.md).
+
 ```bash
 cp .env.example .env
 ```
