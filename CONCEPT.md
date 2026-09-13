@@ -92,14 +92,15 @@ Lemma is not counted as one of the three required end-user apps. It is the evide
 
 ## Primary flow
 
-1. The learner sends `!learn topic | goal | availability | timezone` in Discord.
-2. Learning Arc generates 3–5 measurable mastery outcomes and exactly one first task.
-3. It creates one Notion topic page with the current task.
-4. It asks Google Calendar for a free slot inside the allowed study window.
-5. It creates one 35-minute event only when a slot exists.
-6. Discord receives the next action, time, links, and run ID.
-7. The learner submits a reflection after the task.
-8. Learning Arc generates exactly one adaptive Task 2, appends it to Notion, and schedules the next free session.
+1. The learner speaks naturally in a Discord DM or mentions Learning Arc once in a server.
+2. The agent extracts the topic, outcome, experience, availability, and timezone across the conversation, asking one short question only when a blocking detail is missing.
+3. Learning Arc generates 3–5 measurable mastery outcomes and exactly one first task.
+4. It creates one Notion topic page with the current task.
+5. It asks Google Calendar for a free slot inside the allowed study window.
+6. It creates one 35-minute event only when a slot exists.
+7. Discord receives the next action, time, links, and run ID.
+8. The learner submits a reflection after the task.
+9. Learning Arc generates exactly one adaptive Task 2, appends it to Notion, and schedules the next free session.
 
 ## The key adaptive demo
 

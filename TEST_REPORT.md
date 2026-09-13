@@ -19,16 +19,17 @@
    - agent called a Calendar event tool;
    - agent returned a final evidence-based message.
 5. Exercised FastAPI endpoints with `TestClient`.
-6. Tested Discord command parsing and response formatting.
-7. Tested duplicate-message idempotency.
-8. Tested no-free-slot behavior.
-9. Tested Task 1 → reflection → adaptive Task 2 behavior.
-10. Compiled the Python source tree.
+6. Tested natural-language Discord routing: DMs need no prefix, one server mention starts a conversation, and follow-up replies remain free-form.
+7. Tested Discord response formatting.
+8. Tested duplicate-message idempotency.
+9. Tested no-free-slot behavior.
+10. Tested Task 1 → reflection → adaptive Task 2 behavior.
+11. Compiled the Python source tree.
 
 ## Automated result
 
 ```text
-20 tests passed
+24 tests passed
 1 non-blocking Starlette deprecation warning
 ```
 
