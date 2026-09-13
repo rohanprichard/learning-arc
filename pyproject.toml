@@ -1,0 +1,37 @@
+[project]
+name = "learning-arc"
+version = "0.2.0"
+description = "A Deep Agent that turns learning intent into adaptive action across Discord, Notion, and Google Calendar"
+requires-python = ">=3.11"
+dependencies = [
+  "fastapi>=0.115,<1",
+  "uvicorn[standard]>=0.34,<1",
+  "pydantic-settings>=2.7,<3",
+  "httpx>=0.28,<1",
+]
+
+[project.optional-dependencies]
+agent = [
+  "composio>=0.19,<1",
+  "composio-langchain>=0.8,<1",
+  "deepagents>=0.7,<1",
+  "langchain>=1.0,<2",
+  "langchain-openai>=1.0,<2",
+  "discord.py>=2.5,<3",
+]
+dev = [
+  "pytest>=8.3,<9",
+  "pytest-asyncio>=0.25,<1",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/bloom_arc"]
+
+[tool.pytest.ini_options]
+pythonpath = ["src"]
+testpaths = ["tests"]
+addopts = "-q"
