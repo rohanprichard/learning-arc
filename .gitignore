@@ -3,4 +3,5 @@ __pycache__/
 .pytest_cache/
 .env
 *.pyc
+*.swp
 bloom_arc.db
