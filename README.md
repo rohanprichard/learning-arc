@@ -62,13 +62,23 @@ No delete, archive, attendee-invite, or destructive tools are exposed.
 
 ## Setup instructions — one path to run everything
 
-For the complete Discord, Composio, and OpenRouter account setup, see [`SETUP.md`](SETUP.md).
+### Discord
+
+Create a **Learning Arc** app in the [Discord Developer Portal](https://discord.com/developers/applications). On **Bot**, copy the token and enable **Message Content Intent**. On **Installation**, enable **Guild Install**, select the `bot` scope, and grant only **View Channels**, **Send Messages**, **Send Messages in Threads**, **Read Message History**, and **Embed Links**. Install it in a test server and give it access to the demo channel. Do not grant Administrator.
+
+### Composio
+
+In the [Composio dashboard](https://dashboard.composio.dev), create/select a project and copy its API key from **Settings → API Keys**. Connect **Notion** and **Google Calendar** with Composio-managed OAuth; add **Google Tasks** only when using the optional fourth app. During Notion authorization, grant the integration access to a blank `Learning Arc Demo` page. Composio provides the OAuth application, so no separate Notion or Google Cloud OAuth client is needed.
+
+### OpenRouter and local configuration
+
+Create an OpenRouter key at [OpenRouter API Keys](https://openrouter.ai/settings/keys), then:
 
 ```bash
 cp .env.example .env
 ```
 
-Put only these values in `.env`:
+Fill only:
 
 ```dotenv
 COMPOSIO_API_KEY=your-key
@@ -77,23 +87,25 @@ DISCORD_BOT_TOKEN=your-token
 ENABLE_GOOGLE_TASKS=true
 ```
 
-Then run one command:
+Do not commit or share `.env`; it is excluded from Git and the Docker build context.
+
+### Start
 
 ```bash
 ./run.sh
 ```
 
-`run.sh` validates the three required credentials, builds the Docker image, and starts the FastAPI API plus Discord bot together through Docker Compose. FastAPI is exposed only on `127.0.0.1:8000`. The agent model and stable demo user ID have defaults in code, so they do not belong in `.env`.
+The launcher builds the Docker image and starts FastAPI plus the Discord bot.
 
-Connect the same Composio user to the **Notion** and **Google Calendar** toolkits. Connect **Google Tasks** too if the optional fourth app is enabled. OAuth must be completed by the account owner; the app does not request or store those credentials. The Deep Agent discovers schemas, calls the allowed tools, observes the results, and continues until it can return an honest action receipt.
+### Verify
 
-Talk to the bot naturally. In a DM, no prefix or command is required:
+In a DM, simply write:
 
 ```text
 I want to learn RAG for a small project. I know Python, and Tuesday evening usually works for me.
 ```
 
-In a server, mention Learning Arc once to begin. Follow-up replies in that same conversation need no mention or structured format. The skill extracts the topic, desired outcome, experience, availability, and timezone across the conversation and asks one natural clarifying question when a blocking detail is missing.
+In a server, mention Learning Arc once to begin; follow-up messages in that conversation are free-form. Confirm the Notion page, conflict-checked Calendar event, optional Google Task, and Discord action receipt directly in their apps.
 
 The bot uses each Discord message ID as an idempotency key while the channel/user pair supplies stable multi-turn agent context.
 
@@ -138,7 +150,12 @@ The agent decides the lesson and the next tool call from observed state. Python 
 3. **No free slot:** Notion succeeds, Calendar remains empty, status is `needs_scheduling`.
 4. **Adaptive completion:** one learner reflection creates exactly one next lesson and one next session.
 
-The executable details and latest test output are in [`TEST_REPORT.md`](TEST_REPORT.md).
+Automated coverage exercises the happy path, duplicate delivery, no-slot behavior, adaptive Task 2 generation, natural Discord routing, the Deep Agent tool trajectory, and Docker configuration. Run `docker compose run --rm learning-arc uv run pytest` to reproduce the suite.
+
+**Current persistence boundary:** the Discord thread ID keeps agent conversation context for the lifetime of the running container. Notion, Calendar, and Tasks are durable external state; the in-process idempotency cache and LangGraph checkpointer reset if the container is recreated. For the hackathon demo, do not restart the container mid-conversation.
+
+**Next production hardening:** add a SQLite/Postgres LangGraph checkpointer and durable run/idempotency store so conversational context survives restarts.
+
 
 ## Two-minute demo
 
