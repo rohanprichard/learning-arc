@@ -1,0 +1,15 @@
+services:
+  learning-arc:
+    build:
+      context: .
+    image: learning-arc:local
+    env_file:
+      - .env
+    environment:
+      BLOOM_ARC_MODE: agent
+      LEARNING_ARC_HOST: 0.0.0.0
+      LEARNING_ARC_PORT: "8000"
+    ports:
+      - "127.0.0.1:8000:8000"
+    init: true
+    restart: unless-stopped
