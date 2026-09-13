@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from collections.abc import Callable
 from typing import Any, Protocol
 from uuid import uuid4
 
@@ -14,8 +15,13 @@ class InvokableAgent(Protocol):
 class LearningAgentService:
     """Reliability boundary around the reasoning-and-action agent loop."""
 
-    def __init__(self, agent: InvokableAgent) -> None:
+    def __init__(
+        self,
+        agent: InvokableAgent,
+        callback_factory: Callable[[], Any | None] | None = None,
+    ) -> None:
         self.agent = agent
+        self.callback_factory = callback_factory
         self._runs: dict[str, AgentRun] = {}
 
     def run(self, request: LearningRequest, idempotency_key: str) -> AgentRun:
@@ -25,9 +31,20 @@ class LearningAgentService:
             repeated.duplicate = True
             return repeated
 
+        config: dict[str, Any] = {
+            "configurable": {
+                "thread_id": idempotency_key,
+            }
+        }
+        if self.callback_factory is not None:
+            callback = self.callback_factory()
+            if callback is not None:
+                config["callbacks"] = [callback]
+                config["configurable"]["user_id"] = request.user_id
+
         result = self.agent.invoke(
             {"messages": [{"role": "user", "content": self._prompt(request)}]},
-            config={"configurable": {"thread_id": idempotency_key}},
+            config=config,
         )
         messages = result.get("messages", [])
         final_message = self._content(messages[-1]) if messages else "Agent returned no message."

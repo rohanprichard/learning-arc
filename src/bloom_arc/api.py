@@ -100,7 +100,12 @@ def create_app(
                 graph = create_learning_arc_agent(settings)
             else:
                 graph = agent_factory()
-            agent_service = LearningAgentService(graph)
+            from .observability import create_lemma_callback
+
+            agent_service = LearningAgentService(
+                graph,
+                callback_factory=create_lemma_callback,
+            )
         return agent_service.run(request, idempotency_key).model_dump(mode="json")
 
     @app.post("/api/runs/{run_id}/complete")

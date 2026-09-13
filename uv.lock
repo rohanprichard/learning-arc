@@ -1371,6 +1371,7 @@ agent = [
     { name = "discord-py" },
     { name = "langchain" },
     { name = "langchain-openai" },
+    { name = "uselemma-tracing", extra = ["langgraph"] },
 ]
 dev = [
     { name = "pytest" },
@@ -1390,6 +1391,7 @@ requires-dist = [
     { name = "pydantic-settings", specifier = ">=2.7,<3" },
     { name = "pytest", marker = "extra == 'dev'", specifier = ">=8.3,<9" },
     { name = "pytest-asyncio", marker = "extra == 'dev'", specifier = ">=0.25,<1" },
+    { name = "uselemma-tracing", extras = ["langgraph"], marker = "extra == 'agent'", specifier = ">=7.1,<8" },
     { name = "uvicorn", extras = ["standard"], specifier = ">=0.34,<1" },
 ]
 provides-extras = ["agent", "dev"]
@@ -2494,6 +2496,21 @@ source = { registry = "https://pypi.org/simple" }
 sdist = { url = "https://files.pythonhosted.org/packages/53/0c/06f8b233b8fd13b9e5ee11424ef85419ba0d8ba0b3138bf360be2ff56953/urllib3-2.7.0.tar.gz", hash = "sha256:231e0ec3b63ceb14667c67be60f2f2c40a518cb38b03af60abc813da26505f4c", size = 433602, upload-time = "2026-05-07T16:13:18.596Z" }
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7f/3e/5db95bcf282c52709639744ca2a8b149baccf648e39c8cc87553df9eae0c/urllib3-2.7.0-py3-none-any.whl", hash = "sha256:9fb4c81ebbb1ce9531cce37674bbc6f1360472bc18ca9a553ede278ef7276897", size = 131087, upload-time = "2026-05-07T16:13:17.151Z" },
+]
+
+[[package]]
+name = "uselemma-tracing"
+version = "7.11.2"
+source = { registry = "https://pypi.org/simple" }
+sdist = { url = "https://files.pythonhosted.org/packages/50/8c/e24dd6f5ddbf4dbe2899b9d0cdf2b150a04dc31507ce19da9a42b3ce7f8d/uselemma_tracing-7.11.2.tar.gz", hash = "sha256:9109a7c6ed61a4ed8b80789582beac23ee7198a2d57e490ec865895d4ae37219", size = 34427, upload-time = "2026-09-03T20:49:59.365Z" }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/f0/3d/f3ede42434e88c2e5c5280c24e8c3e37a29a6bce70fd6030476245159b26/uselemma_tracing-7.11.2-py3-none-any.whl", hash = "sha256:fa65fd117ae3e0c72602caf0367b9dcb7e0b25d1289cf48175eb63beeb03db4f", size = 39754, upload-time = "2026-09-03T20:49:58.221Z" },
+]
+
+[package.optional-dependencies]
+langgraph = [
+    { name = "langchain" },
+    { name = "langgraph" },
 ]
 
 [[package]]

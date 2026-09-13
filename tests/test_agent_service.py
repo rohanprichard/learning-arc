@@ -55,3 +55,17 @@ def test_learning_agent_caches_repeated_message_before_agent_reacts() -> None:
     assert repeated.run_id == first.run_id
     assert repeated.duplicate is True
     assert graph.invocations == 1
+
+
+def test_learning_agent_attaches_lemma_callback_to_graph_invocation() -> None:
+    graph = FakeDeepAgent()
+    callback = object()
+    service = LearningAgentService(graph, callback_factory=lambda: callback)
+
+    service.run(request(), idempotency_key="discord-message-observed")
+
+    assert graph.last_config["callbacks"] == [callback]
+    assert graph.last_config["configurable"] == {
+        "thread_id": "discord-message-observed",
+        "user_id": "discord:42",
+    }
