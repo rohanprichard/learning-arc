@@ -2,6 +2,8 @@
 
 **Learning Arc turns a learner’s ordinary Discord message into one practical next step that fits their real life.** It asks only for missing context, creates a living learning page, checks the learner’s schedule before booking time, and adapts the next lesson from what the learner reports back.
 
+## Demo Link: https://youtu.be/PiAVcxOL0us
+
 ## Project overview
 
 A learner can start naturally:
