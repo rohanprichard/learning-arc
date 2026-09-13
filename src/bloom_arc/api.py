@@ -18,6 +18,12 @@ class CompletionRequest(BaseModel):
     reflection: str = Field(min_length=3, max_length=2000)
 
 
+class ChatRequest(BaseModel):
+    user_id: str = Field(min_length=1)
+    conversation_id: str = Field(min_length=1)
+    message: str = Field(min_length=1, max_length=4000)
+
+
 def _receipt(run: LearningRun, *, duplicate_writes: int = 0) -> dict[str, object]:
     return {
         **run.model_dump(mode="json"),
@@ -66,6 +72,28 @@ def create_app(
     service = BloomArcOrchestrator(planner, gateway, store)
     agent_service: LearningAgentService | None = None
 
+    def get_agent_service() -> LearningAgentService:
+        nonlocal agent_service
+        if settings.bloom_arc_mode != "agent":
+            raise HTTPException(
+                status_code=503,
+                detail="Set BLOOM_ARC_MODE=agent to enable the Deep Agent endpoint",
+            )
+        if agent_service is None:
+            if agent_factory is None:
+                from .deep_agent import create_learning_arc_agent
+
+                graph = create_learning_arc_agent(settings)
+            else:
+                graph = agent_factory()
+            from .observability import create_lemma_callback
+
+            agent_service = LearningAgentService(
+                graph,
+                callback_factory=create_lemma_callback,
+            )
+        return agent_service
+
     @app.get("/health")
     def health() -> dict[str, str]:
         return {"status": "ok", "mode": settings.bloom_arc_mode}
@@ -87,26 +115,19 @@ def create_app(
         request: LearningRequest,
         idempotency_key: str = Header(alias="Idempotency-Key"),
     ) -> dict[str, object]:
-        nonlocal agent_service
-        if settings.bloom_arc_mode != "agent":
-            raise HTTPException(
-                status_code=503,
-                detail="Set BLOOM_ARC_MODE=agent to enable the Deep Agent endpoint",
-            )
-        if agent_service is None:
-            if agent_factory is None:
-                from .deep_agent import create_learning_arc_agent
+        return get_agent_service().run(request, idempotency_key).model_dump(mode="json")
 
-                graph = create_learning_arc_agent(settings)
-            else:
-                graph = agent_factory()
-            from .observability import create_lemma_callback
-
-            agent_service = LearningAgentService(
-                graph,
-                callback_factory=create_lemma_callback,
-            )
-        return agent_service.run(request, idempotency_key).model_dump(mode="json")
+    @app.post("/api/agent/chat", status_code=status.HTTP_201_CREATED)
+    def chat_agent(
+        request: ChatRequest,
+        idempotency_key: str = Header(alias="Idempotency-Key"),
+    ) -> dict[str, object]:
+        return get_agent_service().chat(
+            message=request.message,
+            user_id=request.user_id,
+            thread_id=request.conversation_id,
+            idempotency_key=idempotency_key,
+        ).model_dump(mode="json")
 
     @app.post("/api/runs/{run_id}/complete")
     def complete_run(run_id: str, body: CompletionRequest) -> dict[str, object]:

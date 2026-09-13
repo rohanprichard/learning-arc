@@ -25,6 +25,36 @@ class LearningAgentService:
         self._runs: dict[str, AgentRun] = {}
 
     def run(self, request: LearningRequest, idempotency_key: str) -> AgentRun:
+        return self._invoke(
+            message=self._prompt(request),
+            user_id=request.user_id,
+            thread_id=idempotency_key,
+            idempotency_key=idempotency_key,
+        )
+
+    def chat(
+        self,
+        *,
+        message: str,
+        user_id: str,
+        thread_id: str,
+        idempotency_key: str,
+    ) -> AgentRun:
+        return self._invoke(
+            message=f"Learner message:\n{message}",
+            user_id=user_id,
+            thread_id=thread_id,
+            idempotency_key=idempotency_key,
+        )
+
+    def _invoke(
+        self,
+        *,
+        message: str,
+        user_id: str,
+        thread_id: str,
+        idempotency_key: str,
+    ) -> AgentRun:
         existing = self._runs.get(idempotency_key)
         if existing is not None:
             repeated = existing.model_copy(deep=True)
@@ -33,17 +63,17 @@ class LearningAgentService:
 
         config: dict[str, Any] = {
             "configurable": {
-                "thread_id": idempotency_key,
+                "thread_id": thread_id,
             }
         }
         if self.callback_factory is not None:
             callback = self.callback_factory()
             if callback is not None:
                 config["callbacks"] = [callback]
-                config["configurable"]["user_id"] = request.user_id
+                config["configurable"]["user_id"] = user_id
 
         result = self.agent.invoke(
-            {"messages": [{"role": "user", "content": self._prompt(request)}]},
+            {"messages": [{"role": "user", "content": message}]},
             config=config,
         )
         messages = result.get("messages", [])

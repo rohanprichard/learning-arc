@@ -69,3 +69,43 @@ def test_learning_agent_attaches_lemma_callback_to_graph_invocation() -> None:
         "thread_id": "discord-message-observed",
         "user_id": "discord:42",
     }
+
+
+def test_chat_passes_natural_language_with_stable_conversation_context() -> None:
+    graph = FakeDeepAgent()
+    service = LearningAgentService(graph)
+
+    result = service.chat(
+        message="I want to learn RAG, but I only have Tuesday evening free.",
+        user_id="discord:42",
+        thread_id="discord-channel-99-user-42",
+        idempotency_key="discord-message-501",
+    )
+
+    assert result.status == "completed"
+    assert "I want to learn RAG" in graph.last_input["messages"][0]["content"]
+    assert graph.last_config == {
+        "configurable": {"thread_id": "discord-channel-99-user-42"}
+    }
+
+
+def test_chat_deduplicates_delivery_without_losing_conversation_thread() -> None:
+    graph = FakeDeepAgent()
+    service = LearningAgentService(graph)
+
+    first = service.chat(
+        message="I want to learn RAG",
+        user_id="discord:42",
+        thread_id="discord-channel-99-user-42",
+        idempotency_key="discord-message-502",
+    )
+    repeated = service.chat(
+        message="I want to learn RAG",
+        user_id="discord:42",
+        thread_id="discord-channel-99-user-42",
+        idempotency_key="discord-message-502",
+    )
+
+    assert repeated.run_id == first.run_id
+    assert repeated.duplicate is True
+    assert graph.invocations == 1
