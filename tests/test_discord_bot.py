@@ -1,23 +1,45 @@
-import pytest
-
-from bloom_arc.discord_bot import format_run_reply, parse_learn_command
+from bloom_arc.discord_bot import ConversationRouter, clean_message, format_run_reply
 
 
-def test_parse_learn_command_extracts_bounded_fields() -> None:
-    parsed = parse_learn_command(
-        "!learn RAG | build a small demo | Tuesday and Thursday evenings | Asia/Kolkata",
+def test_direct_messages_need_no_trigger_phrase() -> None:
+    router = ConversationRouter()
+
+    assert router.should_respond(
+        is_dm=True,
+        bot_mentioned=False,
+        channel_id="dm-1",
         user_id="42",
     )
 
-    assert parsed.topic == "RAG"
-    assert parsed.goal == "build a small demo"
-    assert parsed.availability == "Tuesday and Thursday evenings"
-    assert parsed.timezone == "Asia/Kolkata"
+
+def test_first_server_message_uses_a_natural_mention_then_followups_are_freeform() -> None:
+    router = ConversationRouter()
+
+    assert router.should_respond(
+        is_dm=False,
+        bot_mentioned=True,
+        channel_id="channel-9",
+        user_id="42",
+    )
+    assert router.should_respond(
+        is_dm=False,
+        bot_mentioned=False,
+        channel_id="channel-9",
+        user_id="42",
+    )
+    assert not router.should_respond(
+        is_dm=False,
+        bot_mentioned=False,
+        channel_id="channel-9",
+        user_id="different-user",
+    )
 
 
-def test_parse_learn_command_rejects_missing_fields() -> None:
-    with pytest.raises(ValueError, match="Usage"):
-        parse_learn_command("!learn RAG", user_id="42")
+def test_clean_message_removes_discord_mention_without_structured_parsing() -> None:
+    assert clean_message(
+        "<@123> I want to learn RAG, but I only have Tuesday evening.",
+        bot_user_id="123",
+    ) == "I want to learn RAG, but I only have Tuesday evening."
 
 
 def test_format_reply_surfaces_partial_state_honestly() -> None:

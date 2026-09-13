@@ -6,29 +6,33 @@ from typing import Any
 
 import httpx
 
-from .models import LearningRequest
+
+class ConversationRouter:
+    """Route DMs and natural mentions, then keep that conversation active."""
+
+    def __init__(self) -> None:
+        self.active: set[tuple[str, str]] = set()
+
+    def should_respond(
+        self,
+        *,
+        is_dm: bool,
+        bot_mentioned: bool,
+        channel_id: str,
+        user_id: str,
+    ) -> bool:
+        key = (channel_id, user_id)
+        if is_dm or bot_mentioned:
+            self.active.add(key)
+            return True
+        return key in self.active
 
 
-USAGE = (
-    "Usage: `!learn topic | goal | availability | timezone`\n"
-    "Example: `!learn RAG | build a small demo | Tuesday evening | Asia/Kolkata`"
-)
-
-
-def parse_learn_command(content: str, user_id: str) -> LearningRequest:
-    if not content.lower().startswith("!learn "):
-        raise ValueError(USAGE)
-    parts = [part.strip() for part in content[7:].split("|")]
-    if len(parts) not in (3, 4) or any(not part for part in parts):
-        raise ValueError(USAGE)
-    topic, goal, availability = parts[:3]
-    timezone = parts[3] if len(parts) == 4 else "UTC"
-    return LearningRequest(
-        user_id=f"discord:{user_id}",
-        topic=topic,
-        goal=goal,
-        availability=availability,
-        timezone=timezone,
+def clean_message(content: str, bot_user_id: str) -> str:
+    return (
+        content.replace(f"<@{bot_user_id}>", "")
+        .replace(f"<@!{bot_user_id}>", "")
+        .strip()
     )
 
 
@@ -62,6 +66,7 @@ async def run_bot() -> None:
     intents = discord.Intents.default()
     intents.message_content = True
     client = discord.Client(intents=intents)
+    router = ConversationRouter()
 
     @client.event
     async def on_ready() -> None:
@@ -69,20 +74,34 @@ async def run_bot() -> None:
 
     @client.event
     async def on_message(message: Any) -> None:
-        if message.author == client.user or not message.content.lower().startswith("!learn"):
+        if message.author == client.user or client.user is None:
             return
-        try:
-            learning_request = parse_learn_command(message.content, str(message.author.id))
-        except ValueError as exc:
-            await message.reply(str(exc))
+
+        user_id = str(message.author.id)
+        channel_id = str(message.channel.id)
+        if not router.should_respond(
+            is_dm=message.guild is None,
+            bot_mentioned=client.user in message.mentions,
+            channel_id=channel_id,
+            user_id=user_id,
+        ):
+            return
+
+        content = clean_message(message.content, str(client.user.id))
+        if not content:
+            await message.reply("What would you like to learn, and what would progress look like for you?")
             return
 
         async with message.channel.typing():
-            async with httpx.AsyncClient(timeout=90) as http:
+            async with httpx.AsyncClient(timeout=180) as http:
                 response = await http.post(
-                    f"{api_url}/api/agent",
+                    f"{api_url}/api/agent/chat",
                     headers={"Idempotency-Key": f"discord-message-{message.id}"},
-                    json=learning_request.model_dump(),
+                    json={
+                        "user_id": f"discord:{user_id}",
+                        "conversation_id": f"discord-channel-{channel_id}-user-{user_id}",
+                        "message": content,
+                    },
                 )
         if response.is_success:
             await message.reply(format_run_reply(response.json()))
