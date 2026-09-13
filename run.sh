@@ -14,7 +14,7 @@ source .env
 set +a
 
 missing=()
-for key in COMPOSIO_API_KEY OPENROUTER_API_KEY DISCORD_BOT_TOKEN LEMMA_API_KEY LEMMA_PROJECT_ID; do
+for key in COMPOSIO_API_KEY OPENROUTER_API_KEY DISCORD_BOT_TOKEN; do
   if [[ -z "${!key:-}" ]]; then
     missing+=("$key")
   fi
