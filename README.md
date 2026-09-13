@@ -11,6 +11,7 @@ Learning Arc connects the open-source Bloom Tutor learning method to Discord, No
 - **LangChain Deep Agents** for the actual reasoning → tool call → observation → recovery loop and progressive loading of the Bloom-derived skill.
 - **Composio Sessions** for narrowly allow-listed Notion and Google Calendar tools and OAuth.
 - **Google Tasks (optional fourth app)** for the one current action, linked back to the Notion lesson.
+- **Lemma** traces every LangGraph/Deep Agent execution, model generation, graph node, and Composio tool call for reliability evidence.
 - **Deterministic Python guardrails** outside the agent for idempotency and an exact external-tool allowlist.
 
 ## Working now
@@ -58,6 +59,8 @@ Put only these values in `.env`:
 COMPOSIO_API_KEY=your-key
 OPENROUTER_API_KEY=your-key
 DISCORD_BOT_TOKEN=your-token
+LEMMA_API_KEY=your-key
+LEMMA_PROJECT_ID=your-project-id
 ENABLE_GOOGLE_TASKS=true
 ```
 
@@ -67,7 +70,7 @@ Then run one command:
 ./run.sh
 ```
 
-`run.sh` validates the three required credentials, builds the Docker image, and starts the FastAPI API plus Discord bot together through Docker Compose. FastAPI is exposed only on `127.0.0.1:8000`. The agent model and stable demo user ID have defaults in code, so they do not belong in `.env`.
+`run.sh` validates the five required values, builds the Docker image, and starts the FastAPI API plus Discord bot together through Docker Compose. FastAPI is exposed only on `127.0.0.1:8000`. The agent model and stable demo user ID have defaults in code, so they do not belong in `.env`.
 
 Connect the same Composio user to the **Notion** and **Google Calendar** toolkits. Connect **Google Tasks** too if the optional fourth app is enabled. OAuth must be completed by the account owner; the app does not request or store those credentials. The Deep Agent discovers schemas, calls the allowed tools, observes the results, and continues until it can return an honest action receipt.
 
@@ -78,6 +81,12 @@ In the test channel:
 ```
 
 The bot uses the Discord message ID as the idempotency key.
+
+## Lemma observability
+
+Learning Arc uses Lemma's official Python LangGraph callback. One Discord request becomes one Lemma trace. Deep Agent graph nodes become spans, LLM calls become generations, and Composio actions become tool-call records with their outputs or errors. The Discord message ID is passed as the trace thread ID and the Discord user ID as the trace user ID.
+
+This makes the reliability claim inspectable in the demo: open the corresponding Lemma trace and show the Notion lookup/write, Calendar availability check, Calendar write or safe no-slot branch, latency, and any tool error. Lemma is observability infrastructure; the three required user-facing apps remain Discord, Notion, and Google Calendar.
 
 ## Test
 

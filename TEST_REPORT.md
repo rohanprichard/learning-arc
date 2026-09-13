@@ -28,7 +28,7 @@
 ## Automated result
 
 ```text
-17 tests passed
+20 tests passed
 1 non-blocking Starlette deprecation warning
 ```
 
@@ -58,6 +58,16 @@ The Docker deployment was exercised on Docker 29.1.3 with Compose 2.40.3:
 - the smoke-test container was removed afterward.
 
 The Compose port is bound to `127.0.0.1:8000`, and `.env` is excluded from both Git and the Docker build context.
+
+## Lemma verification
+
+- Installed `uselemma-tracing` 7.11.2 with its LangGraph integration.
+- Constructed the official `LemmaLangChainCallbackHandler` successfully.
+- Verified that each Learning Arc execution attaches one callback to the Deep Agent graph invocation.
+- Verified propagation of the Discord message ID as `thread_id` and Discord learner ID as `user_id`.
+- Rebuilt the Docker image and imported Lemma's LangGraph adapter inside the container.
+
+A ready remote Lemma trace still requires `LEMMA_API_KEY` and `LEMMA_PROJECT_ID`; the dashboard trace must be inspected after those values are supplied.
 
 ## What could not be executed
 

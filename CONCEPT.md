@@ -83,9 +83,12 @@ Use **Python and FastAPI** with a real LangChain **Deep Agent**:
 - Deep Agents supplies the reasoning → tool call → observation → recovery loop;
 - the Bloom-derived Agent Skill is loaded progressively from `skills/`;
 - Composio supplies Notion and Google Calendar router tools and OAuth;
+- Lemma's LangGraph callback records one complete trace per agent execution, including model generations and tool results;
 - deterministic Python provides a stable thread ID, idempotency cache, and exact tool allowlists.
 
 This is not a fixed automation pretending to be an agent. The model decides the smallest credible lesson, discovers the allowed tool schemas, selects and calls tools, observes success or failure, and changes its next action from that observation. The deterministic shell constrains the agent; it does not replace its reasoning.
+
+Lemma is not counted as one of the three required end-user apps. It is the evidence layer that lets judges inspect the full agent trajectory and verify that Learning Arc did not invent successful writes or ignore tool failures.
 
 ## Primary flow
 
