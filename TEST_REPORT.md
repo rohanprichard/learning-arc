@@ -46,6 +46,19 @@ final -> "Created one adaptive lesson in Notion and scheduled a confirmed free s
 
 This test uses the real Deep Agents execution loop with scripted model decisions and fake external tool implementations. It proves agent/tool orchestration without pretending that remote objects exist.
 
+## Docker verification
+
+The Docker deployment was exercised on Docker 29.1.3 with Compose 2.40.3:
+
+- `docker compose config --quiet` passed;
+- the `learning-arc:local` image built successfully;
+- importing the packaged FastAPI app inside the image returned `Learning Arc`;
+- a container started in mock mode and reported healthy application startup;
+- `GET /health` through the published port returned `{"status":"ok","mode":"mock"}`;
+- the smoke-test container was removed afterward.
+
+The Compose port is bound to `127.0.0.1:8000`, and `.env` is excluded from both Git and the Docker build context.
+
 ## What could not be executed
 
 The machine currently has none of these configured:
